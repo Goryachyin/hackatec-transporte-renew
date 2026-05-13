@@ -35,8 +35,8 @@ function Sidebar() {
             <BusIcon className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-white leading-none tracking-wide">TransTrack</h1>
-            <p className="text-xs text-blue-200 mt-0.5">Monitoreo en tiempo real</p>
+            <h1 className="text-sm font-bold text-white leading-none tracking-wide">SITMACA</h1>
+            <p className="text-xs text-blue-200 mt-0.5">Monitoreo de transporte en tiempo real</p>
           </div>
           {/* Chevron — solo móvil */}
           <ChevronDownIcon

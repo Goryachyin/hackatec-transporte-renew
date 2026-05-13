@@ -4,6 +4,7 @@ import { extractCoordinates } from '../../utils/interpolate'
 import { distanceAlongRoute } from '../../utils/geoUtils'
 import { progressAtIndex, snapToNearestPoint } from '../../utils/snapToRoute'
 import { RouteMapIcon, TapIcon, LocationIcon } from '../UI/Icons'
+import { useState, useEffect, useRef } from 'react'
 
 // Debe coincidir con TICK_MS de useUnitSimulation para el cálculo de ETA
 const TICK_MS = 200
@@ -20,6 +21,9 @@ function TripPlanner() {
   const units = useAppStore((s) => s.units)
   const isSimulating = useAppStore((s) => s.isSimulating)
 
+  const [tripCompleted, setTripCompleted] = useState(false)
+  const hadUnitInTransitRef = useRef(false)
+
   const route = ROUTES.find((r) => r.id === activeRouteId)
   const coords = route ? extractCoordinates(route.geojson) : []
 
@@ -29,27 +33,78 @@ function TripPlanner() {
     distanceM = distanceAlongRoute(coords, departurePoint.index, destinationPoint.index)
   }
 
-  // --- ETA: primera unidad en llegar al punto de salida ---
-  // Tiempo total de la ruta a speed=1: coords.length * TICK_MS * 4 ms
-  // (step = speed * TICK_MS / (coords.length * 800), ticks para completar = 1/step)
+  // --- ETA: unidad más cercana al punto de salida o en camino al destino ---
+  // Caso A: unidad antes del punto de salida → ETA para llegar a salida
+  // Caso B: unidad entre salida y destino    → ETA para llegar al destino
   let etaSeconds = null
+  let etaLabel = 'ETA unidad'
   if (departurePoint && coords.length) {
     const depProgress = progressAtIndex(departurePoint.index, coords.length)
-    const pending = units.filter(
-      (u) =>
-        u.routeId === activeRouteId &&
-        u.progress < depProgress &&
-        u.status !== 'arrived'
-    )
-    if (pending.length > 0) {
-      const totalRouteMs = coords.length * 800
-      const etas = pending.map((u) => {
-        const remaining = depProgress - u.progress
-        return (remaining * totalRouteMs) / (u.speed * 1000)
+    const dstProgress = destinationPoint
+      ? progressAtIndex(destinationPoint.index, coords.length)
+      : null
+    const totalRouteMs = coords.length * 800
+
+    const etas = []
+    units
+      .filter((u) => u.routeId === activeRouteId && u.status !== 'arrived')
+      .forEach((u) => {
+        if (u.progress < depProgress) {
+          // Unidad aún no llegó al punto de salida
+          const remaining = depProgress - u.progress
+          etas.push((remaining * totalRouteMs) / (u.speed * 1000))
+        } else if (dstProgress !== null && u.progress < dstProgress) {
+          // Unidad ya pasó la salida y va hacia el destino
+          const remaining = dstProgress - u.progress
+          etas.push((remaining * totalRouteMs) / (u.speed * 1000))
+        }
       })
+
+    if (etas.length > 0) {
       etaSeconds = Math.min(...etas)
+      const depProg = progressAtIndex(departurePoint.index, coords.length)
+      const inTransit = units.some(
+        (u) =>
+          u.routeId === activeRouteId &&
+          u.progress >= depProg &&
+          dstProgress !== null &&
+          u.progress < dstProgress
+      )
+      etaLabel = inTransit ? 'ETA destino' : 'ETA unidad'
     }
   }
+
+  // Detectar cuando la unidad en tránsito completa el recorrido
+  useEffect(() => {
+    if (!departurePoint || !destinationPoint || !coords.length) {
+      hadUnitInTransitRef.current = false
+      return
+    }
+    const depProgress = progressAtIndex(departurePoint.index, coords.length)
+    const dstProgress = progressAtIndex(destinationPoint.index, coords.length)
+    const hasUnitInTransit = units.some(
+      (u) =>
+        u.routeId === activeRouteId &&
+        u.progress >= depProgress &&
+        u.progress < dstProgress &&
+        u.status !== 'arrived'
+    )
+    if (hadUnitInTransitRef.current && !hasUnitInTransit) {
+      setTripCompleted(true)
+    }
+    hadUnitInTransitRef.current = hasUnitInTransit
+  }, [units, departurePoint, destinationPoint, activeRouteId, coords.length])
+
+  // Timer separado: solo se activa cuando tripCompleted cambia a true
+  // Al estar en un efecto propio, units no lo cancela en cada tick
+  useEffect(() => {
+    if (!tripCompleted) return
+    const timer = setTimeout(() => {
+      setTripCompleted(false)
+      clearTripPoints()
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [tripCompleted, clearTripPoints])
 
   const formatDistance = (m) =>
     m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`
@@ -178,8 +233,19 @@ function TripPlanner() {
             </button>
           )}
 
+          {/* Banner: recorrido completado */}
+          {tripCompleted && (
+            <div className="flex items-center gap-2 py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <span className="text-base leading-none">✅</span>
+              <div>
+                <p className="text-xs font-semibold text-emerald-700">¡Recorrido completado!</p>
+                <p className="text-xs text-emerald-500">Restableciendo puntos…</p>
+              </div>
+            </div>
+          )}
+
           {/* Métricas */}
-          {(departurePoint || destinationPoint) && (
+          {(departurePoint || destinationPoint) && !tripCompleted && (
             <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 mt-2">
               <div className="bg-slate-50 rounded-lg p-2.5 text-center">
                 <p className="text-xs text-slate-400 mb-0.5">Distancia</p>
@@ -188,7 +254,7 @@ function TripPlanner() {
                 </p>
               </div>
               <div className="bg-slate-50 rounded-lg p-2.5 text-center">
-                <p className="text-xs text-slate-400 mb-0.5">ETA unidad</p>
+                <p className="text-xs text-slate-400 mb-0.5">{etaLabel}</p>
                 <p className="text-sm font-bold text-slate-700">
                   {etaSeconds !== null
                     ? formatEta(etaSeconds)
