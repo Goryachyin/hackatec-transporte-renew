@@ -5,6 +5,7 @@ import UserLocationMarker from './UserLocationMarker'
 import MapAutoFocus from './MapAutoFocus'
 import MapClickHandler from './MapClickHandler'
 import TripMarkersLayer from './TripMarkersLayer'
+import StopIndicator from './StopIndicator'
 import { useAppStore } from '../../store/useAppStore'
 
 const DEFAULT_CENTER = [16.874, -99.904]
@@ -33,6 +34,7 @@ function MapView() {
         <MapClickHandler />
         <RouteLayer />
         <TripMarkersLayer />
+        <StopIndicator />
         <UserLocationMarker />
 
         {units.map((unit) => (

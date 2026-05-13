@@ -2,6 +2,14 @@ import { useAppStore } from '../../store/useAppStore'
 import StatusBadge from '../UI/StatusBadge'
 import InfoPanel from '../UI/InfoPanel'
 
+const MAX_SEATS = 20
+
+function getOccupancyColor(passengers) {
+  if (passengers <= 5)  return '#22c55e'
+  if (passengers <= 18) return '#f59e0b'
+  return '#ef4444'
+}
+
 function UnitList() {
   const units = useAppStore((state) => state.units)
   const selectedUnitId = useAppStore((state) => state.selectedUnitId)
@@ -18,44 +26,67 @@ function UnitList() {
       </p>
 
       <ul className="space-y-2">
-        {units.map((unit) => (
-          <li key={unit.id}>
-            <button
-              onClick={() => setSelectedUnit(selectedUnitId === unit.id ? null : unit.id)}
-              className={`w-full text-left px-3 py-3 rounded-lg border transition-all ${
-                selectedUnitId === unit.id
-                  ? 'border-blue-300 bg-blue-50'
-                  : 'border-slate-200 hover:border-blue-200 hover:bg-slate-50'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: getRouteColor(unit.routeId) }}
-                  />
-                  <span className="text-sm font-medium text-slate-700">{unit.name}</span>
-                </div>
-                <StatusBadge status={unit.status} />
-              </div>
-              {/* Barra de progreso */}
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-200"
-                  style={{
-                    width: `${unit.progress * 100}%`,
-                    backgroundColor: getRouteColor(unit.routeId),
-                  }}
-                />
-              </div>
-              <p className="text-xs text-slate-400 mt-1 text-right">
-                {Math.round(unit.progress * 100)}%
-              </p>
-            </button>
+        {units.map((unit) => {
+          const passengers = unit.passengers ?? 0
+          const occColor = getOccupancyColor(passengers)
 
-            {selectedUnitId === unit.id && <InfoPanel unit={unit} />}
-          </li>
-        ))}
+          return (
+            <li key={unit.id}>
+              <button
+                onClick={() => setSelectedUnit(selectedUnitId === unit.id ? null : unit.id)}
+                className={`w-full text-left px-3 py-3 rounded-lg border transition-all ${
+                  selectedUnitId === unit.id
+                    ? 'border-blue-300 bg-blue-50'
+                    : 'border-slate-200 hover:border-blue-200 hover:bg-slate-50'
+                }`}
+              >
+                {/* Nombre + estado */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: getRouteColor(unit.routeId) }}
+                    />
+                    <span className="text-sm font-medium text-slate-700">{unit.name}</span>
+                  </div>
+                  <StatusBadge status={unit.status} />
+                </div>
+
+                {/* Barra de progreso de ruta */}
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full rounded-full transition-all duration-200"
+                    style={{
+                      width: `${unit.progress * 100}%`,
+                      backgroundColor: getRouteColor(unit.routeId),
+                    }}
+                  />
+                </div>
+
+                {/* Ocupación de pasajeros */}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${(passengers / MAX_SEATS) * 100}%`,
+                        backgroundColor: occColor,
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="text-xs font-semibold tabular-nums shrink-0"
+                    style={{ color: occColor }}
+                  >
+                    {passengers}/{MAX_SEATS}
+                  </span>
+                </div>
+              </button>
+
+              {selectedUnitId === unit.id && <InfoPanel unit={unit} />}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

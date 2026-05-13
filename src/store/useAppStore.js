@@ -10,34 +10,32 @@ function getInitialPosition(routeId) {
 }
 
 
+const MAX_SEATS = 20
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function makeInitialUnit(id, name, routeId) {
+  return {
+    id,
+    name,
+    routeId,
+    progress: 0,
+    position: getInitialPosition(routeId),
+    speed: 1,
+    status: 'on-route',
+    passengers: randInt(0, 5),
+    stepsUntilNextStop: randInt(8, 20),
+    isAtStop: false,
+    stopDelta: null, // { boarded, alighted } — se limpia tras ~2 s
+  }
+}
+
 const INITIAL_UNITS = [
-  {
-    id: 'unit-01',
-    name: 'Unidad 01',
-    routeId: 'ruta-coloso',
-    progress: 0,
-    position: getInitialPosition('ruta-coloso'),
-    speed: 1,
-    status: 'on-route',
-  },
-  {
-    id: 'unit-02',
-    name: 'Unidad 02',
-    routeId: 'ruta-rena',
-    progress: 0,
-    position: getInitialPosition('ruta-rena'),
-    speed: 1,
-    status: 'on-route',
-  },
-  {
-    id: 'unit-03',
-    name: 'Unidad 03',
-    routeId: 'ruta-vacacional',
-    progress: 0,
-    position: getInitialPosition('ruta-vacacional'),
-    speed: 1,
-    status: 'on-route',
-  },
+  makeInitialUnit('unit-01', 'Unidad 01', 'ruta-coloso'),
+  makeInitialUnit('unit-02', 'Unidad 02', 'ruta-rena'),
+  makeInitialUnit('unit-03', 'Unidad 03', 'ruta-vacacional'),
 ]
 
 /**
@@ -84,6 +82,22 @@ export const useAppStore = create((set) => ({
       ),
     })),
 
+  updateUnitPassengers: (id, passengers, stopDelta, stepsUntilNextStop) =>
+    set((state) => ({
+      units: state.units.map((u) =>
+        u.id === id
+          ? { ...u, passengers, isAtStop: true, stopDelta, stepsUntilNextStop }
+          : u
+      ),
+    })),
+
+  clearUnitStop: (id) =>
+    set((state) => ({
+      units: state.units.map((u) =>
+        u.id === id ? { ...u, isAtStop: false, stopDelta: null } : u
+      ),
+    })),
+
   setSelectedUnit: (id) =>
     set({ selectedUnitId: id }),
 
@@ -118,6 +132,10 @@ export const useAppStore = create((set) => ({
         progress: 0,
         position: getInitialPosition(u.routeId),
         status: 'on-route',
+        passengers: randInt(0, 5),
+        stepsUntilNextStop: randInt(8, 20),
+        isAtStop: false,
+        stopDelta: null,
       })),
     })),
 }))
