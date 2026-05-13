@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore'
 
 // URL del servidor de telemetría.
 // En desarrollo apunta a localhost; en producción a Render (variable de entorno Vite).
-const WS_URL = import.meta.env.VITE_API_WS_URL ?? 'http://localhost:3001'
+const WS_URL = import.meta.env.VITE_API_WS_URL ?? 'https://hackatec-telemetry-api.onrender.com'
 
 /**
  * Hook que conecta con el servidor Socket.io del backend y actualiza
