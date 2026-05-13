@@ -3,22 +3,24 @@ function InfoPanel({ unit }) {
   const lng = unit.position?.[1]?.toFixed(5) ?? '—'
 
   return (
-    <div className="mt-1 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100 text-xs text-gray-600 space-y-1">
-      <div className="flex justify-between">
-        <span className="text-gray-400">Lat</span>
-        <span className="font-mono">{lat}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Lng</span>
-        <span className="font-mono">{lng}</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Velocidad</span>
-        <span>{unit.speed}x</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-gray-400">Ruta</span>
-        <span>{unit.routeId ?? '—'}</span>
+    <div className="mx-0.5 px-4 py-3 bg-slate-50 rounded-b-lg border border-t-0 border-slate-200 text-xs">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+        <div>
+          <span className="block text-slate-400 mb-0.5">Latitud</span>
+          <span className="font-mono text-slate-700">{lat}</span>
+        </div>
+        <div>
+          <span className="block text-slate-400 mb-0.5">Longitud</span>
+          <span className="font-mono text-slate-700">{lng}</span>
+        </div>
+        <div>
+          <span className="block text-slate-400 mb-0.5">Velocidad</span>
+          <span className="text-slate-700">{unit.speed}x</span>
+        </div>
+        <div>
+          <span className="block text-slate-400 mb-0.5">Ruta</span>
+          <span className="text-slate-700 truncate block">{unit.routeId ?? '—'}</span>
+        </div>
       </div>
     </div>
   )

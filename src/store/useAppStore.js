@@ -2,13 +2,13 @@ import { create } from 'zustand'
 import { ROUTES } from '../routes/routeRegistry'
 import { extractCoordinates, interpolatePosition } from '../utils/interpolate'
 
-// Posición inicial de cada unidad: primer punto de su ruta
 function getInitialPosition(routeId) {
   const route = ROUTES.find((r) => r.id === routeId)
   if (!route) return null
   const coords = extractCoordinates(route.geojson)
   return coords.length ? coords[0] : null
 }
+
 
 const INITIAL_UNITS = [
   {
@@ -45,12 +45,30 @@ const INITIAL_UNITS = [
  * Se inicializa con las rutas reales del routeRegistry y 3 unidades demo.
  */
 export const useAppStore = create((set) => ({
+  // --- Geolocalización del usuario (fuente única: App.jsx) ---
+  userLocation: null,
+  setUserLocation: (data) => set({ userLocation: data }),
+
+  // --- Comandos de navegación del mapa ---
+  flyToRoutesRequested: false,
+  flyToUserRequested: false,
+  requestFlyToRoutes: () => set({ flyToRoutesRequested: true }),
+  clearFlyToRoutes: () => set({ flyToRoutesRequested: false }),
+  requestFlyToUser: () => set({ flyToUserRequested: true }),
+  clearFlyToUser: () => set({ flyToUserRequested: false }),
+
   // --- Rutas GeoJSON ---
   routes: ROUTES,
   activeRouteId: null,
 
+  // Al cambiar la ruta activa se limpian los puntos del planificador
   setActiveRoute: (routeId) =>
-    set({ activeRouteId: routeId }),
+    set({
+      activeRouteId: routeId,
+      departurePoint: null,
+      destinationPoint: null,
+      selectionMode: null,
+    }),
 
   // --- Unidades ---
   units: INITIAL_UNITS,
@@ -75,6 +93,17 @@ export const useAppStore = create((set) => ({
         u.id === id ? { ...u, speed } : u
       ),
     })),
+
+  // --- Planificador de viaje ---
+  selectionMode: null,      // 'departure' | 'destination' | null
+  departurePoint: null,     // { index, position: [lat, lng] }
+  destinationPoint: null,   // { index, position: [lat, lng] }
+
+  setSelectionMode: (mode) => set({ selectionMode: mode }),
+  setDeparturePoint: (point) => set({ departurePoint: point, selectionMode: null }),
+  setDestinationPoint: (point) => set({ destinationPoint: point, selectionMode: null }),
+  clearTripPoints: () =>
+    set({ departurePoint: null, destinationPoint: null, selectionMode: null }),
 
   // --- Simulación ---
   isSimulating: false,

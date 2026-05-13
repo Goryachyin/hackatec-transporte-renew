@@ -1,10 +1,22 @@
+import { useEffect } from 'react'
 import MapView from './components/Map/MapView'
 import Sidebar from './components/Sidebar/Sidebar'
 import { useUnitSimulation } from './hooks/useUnitSimulation'
+import { useGeolocation } from './hooks/useGeolocation'
+import { useAppStore } from './store/useAppStore'
 
 function App() {
-  // Inicia el motor de simulación globalmente
   useUnitSimulation()
+
+  // Fuente única de geolocalización: sincroniza con el store global
+  const { position, accuracy } = useGeolocation()
+  const setUserLocation = useAppStore((s) => s.setUserLocation)
+
+  useEffect(() => {
+    if (position) {
+      setUserLocation({ position, accuracy })
+    }
+  }, [position, accuracy, setUserLocation])
 
   return (
     <div className="flex h-full w-full">

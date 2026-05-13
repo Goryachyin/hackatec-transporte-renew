@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { interpolatePosition, extractCoordinates } from '../utils/interpolate'
 
-const TICK_MS = 200   // intervalo de actualización en milisegundos
+const TICK_MS = 200
 
 /**
  * Hook que inicia la simulación de movimiento para todas las unidades activas.
- * Avanza el progreso de cada unidad a lo largo de la ruta GeoJSON asignada.
+ * Usa refs para units y routes para evitar que el interval se reinicie
+ * en cada actualización de posición (problemática clásica con setInterval + estado).
  */
 export function useUnitSimulation() {
   const units = useAppStore((state) => state.units)
@@ -15,6 +16,12 @@ export function useUnitSimulation() {
   const isSimulating = useAppStore((state) => state.isSimulating)
 
   const intervalRef = useRef(null)
+  const unitsRef = useRef(units)
+  const routesRef = useRef(routes)
+
+  // Mantener refs actualizadas sin re-crear el interval
+  useEffect(() => { unitsRef.current = units }, [units])
+  useEffect(() => { routesRef.current = routes }, [routes])
 
   useEffect(() => {
     if (!isSimulating) {
@@ -23,16 +30,15 @@ export function useUnitSimulation() {
     }
 
     intervalRef.current = setInterval(() => {
-      units.forEach((unit) => {
+      unitsRef.current.forEach((unit) => {
         if (unit.status === 'arrived') return
 
-        const route = routes.find((r) => r.id === unit.routeId)
+        const route = routesRef.current.find((r) => r.id === unit.routeId)
         if (!route?.geojson) return
 
         const coords = extractCoordinates(route.geojson)
         if (!coords.length) return
 
-        // Avance proporcional a la velocidad y al intervalo
         const step = (unit.speed * TICK_MS) / (coords.length * 800)
         const newProgress = Math.min(unit.progress + step, 1)
         const newPosition = interpolatePosition(coords, newProgress)
@@ -43,5 +49,5 @@ export function useUnitSimulation() {
     }, TICK_MS)
 
     return () => clearInterval(intervalRef.current)
-  }, [isSimulating, units, routes, updateUnitPosition])
+  }, [isSimulating, updateUnitPosition])
 }

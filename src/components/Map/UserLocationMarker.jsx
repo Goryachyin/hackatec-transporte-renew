@@ -1,6 +1,6 @@
 import { Marker, Tooltip, Circle } from 'react-leaflet'
 import { divIcon } from 'leaflet'
-import { useGeolocation } from '../../hooks/useGeolocation'
+import { useAppStore } from '../../store/useAppStore'
 
 const userIcon = divIcon({
   className: '',
@@ -10,9 +10,11 @@ const userIcon = divIcon({
 })
 
 function UserLocationMarker() {
-  const { position, accuracy } = useGeolocation()
+  const userLocation = useAppStore((s) => s.userLocation)
 
-  if (!position) return null
+  if (!userLocation?.position) return null
+
+  const { position, accuracy } = userLocation
 
   return (
     <>

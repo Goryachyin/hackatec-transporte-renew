@@ -18,3 +18,8 @@ html, body, #root {
   height: 100%;
   width: 100%;
 }
+
+/* Cursor crosshair cuando el usuario está seleccionando un punto en el mapa */
+.map-selection-active .leaflet-container {
+  cursor: crosshair !important;
+}
