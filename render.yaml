@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: hackatec-telemetry-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_KEY
+        generateValue: true          # Render genera un valor aleatorio seguro
+      - key: CORS_ORIGIN
+        value: https://hackatec-transporte-renew.vercel.app  # cambia por tu URL del frontend
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: hackatec-redis
+          property: connectionString
+
+  - type: redis
+    name: hackatec-redis
+    plan: free
+    maxmemoryPolicy: noeviction

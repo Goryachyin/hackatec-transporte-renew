@@ -13,6 +13,13 @@ const envSchema = z.object({
     .string()
     .min(16, 'API_KEY debe tener al menos 16 caracteres'),
 
+  // REDIS_URL tiene prioridad (lo inyecta Render automáticamente).
+  // Si no está presente se usan REDIS_HOST / REDIS_PORT / REDIS_PASSWORD.
+  REDIS_URL: z
+    .string()
+    .url()
+    .optional(),
+
   REDIS_HOST: z
     .string()
     .default('127.0.0.1'),
