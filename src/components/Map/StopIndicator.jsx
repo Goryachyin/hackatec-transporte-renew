@@ -24,8 +24,8 @@ function StopIndicator() {
         }}
       >
         <Tooltip permanent direction="top" offset={[0, -16]}>
-          <span style={{ fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            🟢 +{u.stopDelta.boarded} &nbsp; 🔴 -{u.stopDelta.alighted}
+          <span style={{ fontSize: '11px', fontWeight: 600, whiteSpace: 'nowrap', color: '#334155' }}>
+            ↑{u.stopDelta.boarded} &nbsp; ↓{u.stopDelta.alighted}
           </span>
         </Tooltip>
       </CircleMarker>

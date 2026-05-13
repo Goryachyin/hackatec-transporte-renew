@@ -23,3 +23,102 @@ html, body, #root {
 .map-selection-active .leaflet-container {
   cursor: crosshair !important;
 }
+
+/* ─── Slider (tk-slider) ─────────────────────────────────────────────────── */
+.tk-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #2563eb var(--slider-pct, 0%),
+    #e2e8f0 var(--slider-pct, 0%)
+  );
+  border: 1.5px solid #cbd5e1;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  outline: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* Webkit thumb */
+.tk-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45), 0 1px 3px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.tk-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.55);
+}
+.tk-slider::-webkit-slider-thumb:active {
+  transform: scale(1.08);
+}
+
+/* Firefox thumb */
+.tk-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.tk-slider::-moz-range-thumb:hover {
+  transform: scale(1.18);
+}
+.tk-slider::-moz-range-progress {
+  background: #2563eb;
+  height: 6px;
+  border-radius: 999px 0 0 999px;
+}
+
+/* Focus ring accesible */
+.tk-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25),
+              0 2px 8px rgba(37, 99, 235, 0.45);
+}
+.tk-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+}
+
+/* Touch: área mínima de 44 px */
+@media (pointer: coarse) {
+  .tk-slider {
+    height: 8px;
+    padding: 10px 0;
+    background-clip: content-box;
+  }
+  .tk-slider::-webkit-slider-thumb {
+    width: 28px;
+    height: 28px;
+  }
+  .tk-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* ─── Sidebar bottom sheet — override en desktop ────────────────────────── */
+@media (min-width: 768px) {
+  .sidebar-sheet {
+    position: static !important;
+    max-height: none !important;
+    height: 100% !important;
+    width: 18rem !important;       /* w-72 */
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border-right: 1px solid #e2e8f0;
+  }
+}

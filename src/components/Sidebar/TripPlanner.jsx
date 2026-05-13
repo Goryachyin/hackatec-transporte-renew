@@ -3,6 +3,7 @@ import { ROUTES } from '../../routes/routeRegistry'
 import { extractCoordinates } from '../../utils/interpolate'
 import { distanceAlongRoute } from '../../utils/geoUtils'
 import { progressAtIndex } from '../../utils/snapToRoute'
+import { RouteMapIcon, TapIcon } from '../UI/Icons'
 
 // Debe coincidir con TICK_MS de useUnitSimulation para el cálculo de ETA
 const TICK_MS = 200
@@ -66,7 +67,9 @@ function TripPlanner() {
 
       {!activeRouteId ? (
         <div className="text-center py-6">
-          <p className="text-2xl mb-1.5 select-none">🗺</p>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-2">
+            <RouteMapIcon className="w-6 h-6 text-blue-400" />
+          </div>
           <p className="text-xs text-slate-400 leading-relaxed">
             Selecciona una ruta para planificar tu viaje
           </p>
@@ -75,8 +78,8 @@ function TripPlanner() {
         <div className="space-y-2.5">
           {/* Aviso de modo selección */}
           {selectionMode && (
-            <div className="flex items-center gap-1.5 py-1.5 px-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-              <span className="text-amber-500 text-sm leading-none">✦</span>
+            <div className="flex items-center gap-2 py-1.5 px-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+              <TapIcon className="w-3.5 h-3.5 text-amber-500 shrink-0" />
               <span className="text-xs text-amber-700 font-medium">
                 Toca la ruta en el mapa
               </span>

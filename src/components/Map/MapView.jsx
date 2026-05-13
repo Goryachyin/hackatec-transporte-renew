@@ -6,6 +6,7 @@ import MapAutoFocus from './MapAutoFocus'
 import MapClickHandler from './MapClickHandler'
 import TripMarkersLayer from './TripMarkersLayer'
 import StopIndicator from './StopIndicator'
+import { LocationIcon, RouteMapIcon } from '../UI/Icons'
 import { useAppStore } from '../../store/useAppStore'
 
 const DEFAULT_CENTER = [16.874, -99.904]
@@ -42,22 +43,22 @@ function MapView() {
         ))}
       </MapContainer>
 
-      {/* Botones flotantes de navegación */}
-      <div className="absolute bottom-8 right-3 z-[1000] flex flex-col gap-2">
+      {/* Botones flotantes de navegación — por encima del bottom sheet en móvil */}
+      <div className="absolute bottom-24 right-3 z-[2100] md:bottom-8 flex flex-col gap-2">
         <button
           onClick={requestFlyToUser}
           disabled={!userLocation?.position}
           title="Mi ubicación"
-          className="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 text-lg hover:bg-slate-50 hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all"
+          className="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:shadow-xl disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-all"
         >
-          ◎
+          <LocationIcon className="w-5 h-5" />
         </button>
         <button
           onClick={requestFlyToRoutes}
           title="Ver todas las rutas"
-          className="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 hover:bg-slate-50 hover:shadow-xl flex items-center justify-center transition-all"
+          className="w-10 h-10 rounded-xl bg-white shadow-lg border border-slate-200 text-slate-600 hover:bg-slate-50 hover:shadow-xl flex items-center justify-center transition-all"
         >
-          🗺
+          <RouteMapIcon className="w-5 h-5" />
         </button>
       </div>
     </div>

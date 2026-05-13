@@ -22,16 +22,19 @@ export function useUnitSimulation() {
   const updateUnitPassengers = useAppStore((state) => state.updateUnitPassengers)
   const clearUnitStop = useAppStore((state) => state.clearUnitStop)
   const isSimulating = useAppStore((state) => state.isSimulating)
+  const simSpeed = useAppStore((state) => state.simSpeed)
 
   const intervalRef = useRef(null)
   const unitsRef = useRef(units)
   const routesRef = useRef(routes)
+  const simSpeedRef = useRef(simSpeed)
   // Contador de ticks desde la última parada de cada unidad (para limpiar badge)
   const stopClearCountersRef = useRef({})
 
   // Mantener refs actualizadas sin re-crear el interval
   useEffect(() => { unitsRef.current = units }, [units])
   useEffect(() => { routesRef.current = routes }, [routes])
+  useEffect(() => { simSpeedRef.current = simSpeed }, [simSpeed])
 
   useEffect(() => {
     if (!isSimulating) {
@@ -51,7 +54,7 @@ export function useUnitSimulation() {
         if (!coords.length) return
 
         // --- Movimiento ---
-        const step = (unit.speed * TICK_MS) / (coords.length * 800)
+        const step = (unit.speed * simSpeedRef.current * TICK_MS) / (coords.length * 800)
         const newProgress = Math.min(unit.progress + step, 1)
         const newPosition = interpolatePosition(coords, newProgress)
         const newStatus = newProgress >= 1 ? 'arrived' : 'on-route'

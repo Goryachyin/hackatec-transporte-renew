@@ -121,9 +121,11 @@ export const useAppStore = create((set) => ({
 
   // --- Simulación ---
   isSimulating: false,
+  simSpeed: 1,             // multiplicador global de velocidad (0.5 – 3)
 
   startSimulation: () => set({ isSimulating: true }),
   pauseSimulation: () => set({ isSimulating: false }),
+  setSimSpeed: (simSpeed) => set({ simSpeed }),
   resetSimulation: () =>
     set((state) => ({
       isSimulating: false,
