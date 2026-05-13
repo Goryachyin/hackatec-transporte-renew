@@ -23,8 +23,10 @@ export function useRealtimeTelemetry() {
 
   useEffect(() => {
     const socket = io(WS_URL, {
-      transports: ['websocket'],
-      reconnectionAttempts: 5,
+      // Polling primero: más robusto en proxies y planes free de Render.
+      // Socket.io hace upgrade a WebSocket automáticamente si está disponible.
+      transports: ['polling', 'websocket'],
+      reconnectionAttempts: 10,
       reconnectionDelay: 2000,
     })
 
