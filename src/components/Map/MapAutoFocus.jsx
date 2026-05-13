@@ -7,10 +7,11 @@ const ROUTES_ZOOM = 15
 
 /**
  * Componente interno del MapContainer (requiere contexto de Leaflet).
- * Gestiona tres comportamientos de navegación automática:
+ * Gestiona cuatro comportamientos de navegación automática:
  * 1. Auto-fly a la ubicación GPS del usuario al primer fix
  * 2. Fly to routes (botón externo)
  * 3. Fly to user location (botón externo)
+ * 4. Seguimiento continuo de la unidad seleccionada
  */
 function MapAutoFocus() {
   const map = useMap()
@@ -19,8 +20,12 @@ function MapAutoFocus() {
   const flyToUserRequested = useAppStore((s) => s.flyToUserRequested)
   const clearFlyToRoutes = useAppStore((s) => s.clearFlyToRoutes)
   const clearFlyToUser = useAppStore((s) => s.clearFlyToUser)
+  const selectedUnitId = useAppStore((s) => s.selectedUnitId)
+  const units = useAppStore((s) => s.units)
 
   const hasAutoFlownRef = useRef(false)
+  const isFollowingRef = useRef(false)
+  const prevPositionRef = useRef(null)
 
   // Auto-fly a la ubicación del usuario al primer fix GPS
   useEffect(() => {
@@ -45,6 +50,41 @@ function MapAutoFocus() {
       clearFlyToUser()
     }
   }, [flyToUserRequested, userLocation, map, clearFlyToUser])
+
+  // Fly inicial cuando cambia la unidad seleccionada
+  useEffect(() => {
+    if (!selectedUnitId) {
+      isFollowingRef.current = false
+      prevPositionRef.current = null
+      return
+    }
+    const unit = units.find((u) => u.id === selectedUnitId)
+    if (unit?.position) {
+      const zoom = Math.max(map.getZoom(), 16)
+      map.flyTo(unit.position, zoom, { duration: 1 })
+      isFollowingRef.current = true
+      prevPositionRef.current = unit.position
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUnitId])
+
+  // Seguimiento continuo: panTo suave en cada actualización de posición
+  useEffect(() => {
+    if (!isFollowingRef.current || !selectedUnitId) return
+    const unit = units.find((u) => u.id === selectedUnitId)
+    if (!unit?.position) return
+
+    const prev = prevPositionRef.current
+    const moved =
+      !prev ||
+      prev[0] !== unit.position[0] ||
+      prev[1] !== unit.position[1]
+
+    if (moved) {
+      map.panTo(unit.position, { animate: true, duration: 0.2 })
+      prevPositionRef.current = unit.position
+    }
+  }, [units, selectedUnitId, map])
 
   return null
 }

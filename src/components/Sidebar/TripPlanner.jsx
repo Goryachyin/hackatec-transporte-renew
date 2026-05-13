@@ -2,8 +2,8 @@ import { useAppStore } from '../../store/useAppStore'
 import { ROUTES } from '../../routes/routeRegistry'
 import { extractCoordinates } from '../../utils/interpolate'
 import { distanceAlongRoute } from '../../utils/geoUtils'
-import { progressAtIndex } from '../../utils/snapToRoute'
-import { RouteMapIcon, TapIcon } from '../UI/Icons'
+import { progressAtIndex, snapToNearestPoint } from '../../utils/snapToRoute'
+import { RouteMapIcon, TapIcon, LocationIcon } from '../UI/Icons'
 
 // Debe coincidir con TICK_MS de useUnitSimulation para el cálculo de ETA
 const TICK_MS = 200
@@ -15,6 +15,8 @@ function TripPlanner() {
   const destinationPoint = useAppStore((s) => s.destinationPoint)
   const setSelectionMode = useAppStore((s) => s.setSelectionMode)
   const clearTripPoints = useAppStore((s) => s.clearTripPoints)
+  const setDeparturePoint = useAppStore((s) => s.setDeparturePoint)
+  const userLocation = useAppStore((s) => s.userLocation)
   const units = useAppStore((s) => s.units)
   const isSimulating = useAppStore((s) => s.isSimulating)
 
@@ -59,6 +61,12 @@ function TripPlanner() {
     return rem > 0 ? `${m}m ${rem}s` : `${m}m`
   }
 
+  function handleSnapToUserLocation() {
+    if (!userLocation?.position || !coords.length) return
+    const snapped = snapToNearestPoint(userLocation.position, coords)
+    if (snapped) setDeparturePoint(snapped)
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
       <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
@@ -87,33 +95,49 @@ function TripPlanner() {
           )}
 
           {/* Punto de salida */}
-          <button
-            onClick={() => setSelectionMode(selectionMode === 'departure' ? null : 'departure')}
-            className={`w-full h-9 px-3 rounded-lg border transition-all text-left flex items-center gap-2 ${
-              selectionMode === 'departure'
-                ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
-                : departurePoint
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50'
-            }`}
-          >
-            <span className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-              selectionMode === 'departure'
-                ? 'bg-white/25 text-white'
-                : departurePoint
-                ? 'bg-emerald-500 text-white'
-                : 'bg-slate-200 text-slate-400'
-            }`}>
-              S
-            </span>
-            <span className="text-xs font-medium">
-              {selectionMode === 'departure'
-                ? 'Seleccionando salida…'
-                : departurePoint
-                ? 'Salida seleccionada'
-                : 'Fijar punto de salida'}
-            </span>
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setSelectionMode(selectionMode === 'departure' ? null : 'departure')}
+              className={`flex-1 h-9 px-3 rounded-lg border transition-all text-left flex items-center gap-2 ${
+                selectionMode === 'departure'
+                  ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm'
+                  : departurePoint
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50'
+              }`}
+            >
+              <span className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
+                selectionMode === 'departure'
+                  ? 'bg-white/25 text-white'
+                  : departurePoint
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-slate-200 text-slate-400'
+              }`}>
+                S
+              </span>
+              <span className="text-xs font-medium">
+                {selectionMode === 'departure'
+                  ? 'Seleccionando salida…'
+                  : departurePoint
+                  ? 'Salida seleccionada'
+                  : 'Fijar punto de salida'}
+              </span>
+            </button>
+
+            {/* Botón snap a ubicación GPS */}
+            <button
+              onClick={handleSnapToUserLocation}
+              disabled={!userLocation?.position || !coords.length}
+              title={userLocation?.position ? 'Usar mi ubicación como salida' : 'GPS no disponible'}
+              className={`h-9 w-9 rounded-lg border flex items-center justify-center shrink-0 transition-all ${
+                userLocation?.position && coords.length
+                  ? 'bg-blue-50 border-blue-200 text-blue-500 hover:bg-blue-100 hover:border-blue-300'
+                  : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+              }`}
+            >
+              <LocationIcon className="w-4 h-4" />
+            </button>
+          </div>
 
           {/* Punto de destino */}
           <button

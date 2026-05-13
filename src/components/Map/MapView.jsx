@@ -14,10 +14,15 @@ const DEFAULT_ZOOM = 15
 
 function MapView() {
   const units = useAppStore((state) => state.units)
+  const activeRouteId = useAppStore((state) => state.activeRouteId)
   const selectionMode = useAppStore((state) => state.selectionMode)
   const requestFlyToRoutes = useAppStore((state) => state.requestFlyToRoutes)
   const requestFlyToUser = useAppStore((state) => state.requestFlyToUser)
   const userLocation = useAppStore((state) => state.userLocation)
+
+  const visibleUnits = activeRouteId
+    ? units.filter((u) => u.routeId === activeRouteId)
+    : units
 
   return (
     <div className={`h-full w-full relative${selectionMode ? ' map-selection-active' : ''}`}>
@@ -38,7 +43,7 @@ function MapView() {
         <StopIndicator />
         <UserLocationMarker />
 
-        {units.map((unit) => (
+        {visibleUnits.map((unit) => (
           <UnitMarker key={unit.id} unit={unit} />
         ))}
       </MapContainer>

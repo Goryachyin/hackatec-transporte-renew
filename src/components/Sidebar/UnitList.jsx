@@ -15,18 +15,23 @@ function UnitList() {
   const selectedUnitId = useAppStore((state) => state.selectedUnitId)
   const setSelectedUnit = useAppStore((state) => state.setSelectedUnit)
   const routes = useAppStore((state) => state.routes)
+  const activeRouteId = useAppStore((state) => state.activeRouteId)
 
   const getRouteColor = (routeId) =>
     routes.find((r) => r.id === routeId)?.color ?? '#94a3b8'
 
+  const visibleUnits = activeRouteId
+    ? units.filter((u) => u.routeId === activeRouteId)
+    : units
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
       <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-        Unidades · {units.length}
+        Unidades · {visibleUnits.length}
       </p>
 
       <ul className="space-y-2">
-        {units.map((unit) => {
+        {visibleUnits.map((unit) => {
           const passengers = unit.passengers ?? 0
           const occColor = getOccupancyColor(passengers)
 

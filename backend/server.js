@@ -6,14 +6,6 @@ import { createApp } from './src/app.js'
 import { env } from './src/config/env.js'
 import { startTelemetryWorker } from './src/queues/telemetry.worker.js'
 
-// Parsear CORS_ORIGIN: soporta "*", un único origen, o lista separada por comas.
-// Ej: "http://localhost:5173,https://mi-app.vercel.app"
-function parseCorsOrigin(value) {
-  if (!value || value.trim() === '*') return '*'
-  const parts = value.split(',').map((s) => s.trim()).filter(Boolean)
-  return parts.length === 1 ? parts[0] : parts
-}
-
 // ─── Express + HTTP server ────────────────────────────────────────────────────
 const app        = createApp()
 const httpServer = createServer(app)
@@ -21,11 +13,9 @@ const httpServer = createServer(app)
 // ─── Socket.io ───────────────────────────────────────────────────────────────
 const io = new SocketServer(httpServer, {
   cors: {
-    origin:  parseCorsOrigin(env.CORS_ORIGIN),
+    origin:  env.CORS_ORIGIN,
     methods: ['GET', 'POST'],
   },
-  // Permitir polling como transporte de respaldo (necesario en algunos proxies y planes free)
-  transports: ['polling', 'websocket'],
 })
 
 io.on('connection', (socket) => {

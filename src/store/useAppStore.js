@@ -2,11 +2,12 @@ import { create } from 'zustand'
 import { ROUTES } from '../routes/routeRegistry'
 import { extractCoordinates, interpolatePosition } from '../utils/interpolate'
 
-function getInitialPosition(routeId) {
+function getInitialPosition(routeId, progress = 0) {
   const route = ROUTES.find((r) => r.id === routeId)
   if (!route) return null
   const coords = extractCoordinates(route.geojson)
-  return coords.length ? coords[0] : null
+  if (!coords.length) return null
+  return progress > 0 ? interpolatePosition(coords, progress) : coords[0]
 }
 
 
@@ -16,13 +17,13 @@ function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function makeInitialUnit(id, name, routeId) {
+function makeInitialUnit(id, name, routeId, initialProgress = 0) {
   return {
     id,
     name,
     routeId,
-    progress: 0,
-    position: getInitialPosition(routeId),
+    progress: initialProgress,
+    position: getInitialPosition(routeId, initialProgress),
     speed: 1,
     status: 'on-route',
     passengers: randInt(0, 5),
@@ -37,6 +38,7 @@ const INITIAL_UNITS = [
   makeInitialUnit('unit-01', 'Unidad 01', 'ruta-coloso'),
   makeInitialUnit('unit-02', 'Unidad 02', 'ruta-rena'),
   makeInitialUnit('unit-03', 'Unidad 03', 'ruta-vacacional'),
+  makeInitialUnit('unit-04', 'Unidad 04', 'ruta-coloso', 0.5),
 ]
 
 /**
@@ -110,50 +112,15 @@ export const useAppStore = create((set) => ({
     })),
 
   // Actualiza una unidad con datos reales del backend (Socket.io).
-  // Lógica:
-  //   1. Si el deviceId ya tiene hasRealData=true → actualizar posición (dispositivo real conocido)
-  //   2. Si el deviceId existe pero es unidad simulada (hasRealData=false) → ignorar, no interferir
-  //   3. Si el deviceId es desconocido → crear nueva unidad dinámica con hasRealData=true
+  // Marca hasRealData=true para que la simulación no sobreescriba su posición.
   updateUnitFromTelemetry: (deviceId, position, speed) =>
-    set((state) => {
-      const existing = state.units.find((u) => u.id === deviceId)
-
-      // Caso 1: dispositivo real ya registrado → solo actualizar posición
-      if (existing?.hasRealData) {
-        return {
-          units: state.units.map((u) =>
-            u.id === deviceId
-              ? { ...u, position, speed, status: 'on-route' }
-              : u
-          ),
-        }
-      }
-
-      // Caso 2: coincide con unidad simulada → no interferir con la simulación
-      if (existing && !existing.hasRealData) return state
-
-      // Caso 3: deviceId desconocido → crear nueva unidad dinámica
-      const realCount = state.units.filter((u) => u.hasRealData).length + 1
-      return {
-        units: [
-          ...state.units,
-          {
-            id: deviceId,
-            name: `Dispositivo ${String(realCount).padStart(2, '0')}`,
-            routeId: null,   // sin ruta asignada — posición libre en el mapa
-            progress: 0,
-            position,
-            speed,
-            status: 'on-route',
-            passengers: 0,
-            stepsUntilNextStop: 0,
-            isAtStop: false,
-            stopDelta: null,
-            hasRealData: true,
-          },
-        ],
-      }
-    }),
+    set((state) => ({
+      units: state.units.map((u) =>
+        u.id === deviceId
+          ? { ...u, position, speed, status: 'on-route', hasRealData: true }
+          : u
+      ),
+    })),
 
   // --- Planificador de viaje ---
   selectionMode: null,      // 'departure' | 'destination' | null

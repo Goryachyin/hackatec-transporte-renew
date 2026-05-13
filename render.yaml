@@ -12,7 +12,7 @@ services:
       - key: API_KEY
         generateValue: true          # Render genera un valor aleatorio seguro
       - key: CORS_ORIGIN
-        value: "*"   # Acepta cualquier origen — cambiar a URL específica en producción real
+        value: https://hackatec-transporte-renew.vercel.app  # cambia por tu URL del frontend
       - key: REDIS_URL
         fromService:
           type: redis

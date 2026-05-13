@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore'
 
 // URL del servidor de telemetría.
 // En desarrollo apunta a localhost; en producción a Render (variable de entorno Vite).
-const WS_URL = import.meta.env.VITE_API_WS_URL ?? 'https://hackatec-telemetry-api.onrender.com'
+const WS_URL = import.meta.env.VITE_API_WS_URL ?? 'http://localhost:3001'
 
 /**
  * Hook que conecta con el servidor Socket.io del backend y actualiza
@@ -23,10 +23,8 @@ export function useRealtimeTelemetry() {
 
   useEffect(() => {
     const socket = io(WS_URL, {
-      // Polling primero: más robusto en proxies y planes free de Render.
-      // Socket.io hace upgrade a WebSocket automáticamente si está disponible.
-      transports: ['polling', 'websocket'],
-      reconnectionAttempts: 10,
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
       reconnectionDelay: 2000,
     })
 
