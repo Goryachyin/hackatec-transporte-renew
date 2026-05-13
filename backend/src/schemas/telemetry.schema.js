@@ -19,7 +19,10 @@ export const telemetryBatchSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(Date.now() + 60_000), // no aceptar timestamps más de 1 min en el futuro
+    // .max() evalúa en tiempo de módulo — usar refine() para evaluación en cada request
+    .refine((ts) => ts <= Date.now() + 60_000, {
+      message: 'timestamp no puede ser más de 1 minuto en el futuro',
+    }),
 
   data: z
     .array(telemetryPointSchema)
