@@ -29,6 +29,7 @@ function makeInitialUnit(id, name, routeId) {
     stepsUntilNextStop: randInt(8, 20),
     isAtStop: false,
     stopDelta: null, // { boarded, alighted } — se limpia tras ~2 s
+    hasRealData: false, // true cuando la unidad recibe telemetría real del backend
   }
 }
 
@@ -108,6 +109,17 @@ export const useAppStore = create((set) => ({
       ),
     })),
 
+  // Actualiza una unidad con datos reales del backend (Socket.io).
+  // Marca hasRealData=true para que la simulación no sobreescriba su posición.
+  updateUnitFromTelemetry: (deviceId, position, speed) =>
+    set((state) => ({
+      units: state.units.map((u) =>
+        u.id === deviceId
+          ? { ...u, position, speed, status: 'on-route', hasRealData: true }
+          : u
+      ),
+    })),
+
   // --- Planificador de viaje ---
   selectionMode: null,      // 'departure' | 'destination' | null
   departurePoint: null,     // { index, position: [lat, lng] }
@@ -138,6 +150,7 @@ export const useAppStore = create((set) => ({
         stepsUntilNextStop: randInt(8, 20),
         isAtStop: false,
         stopDelta: null,
+        hasRealData: false,
       })),
     })),
 }))

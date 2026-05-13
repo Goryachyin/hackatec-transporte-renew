@@ -46,6 +46,8 @@ export function useUnitSimulation() {
     intervalRef.current = setInterval(() => {
       unitsRef.current.forEach((unit) => {
         if (unit.status === 'arrived') return
+        // Si la unidad tiene telemetría real del backend, no sobreescribir su posición
+        if (unit.hasRealData) return
 
         const route = routesRef.current.find((r) => r.id === unit.routeId)
         if (!route?.geojson) return

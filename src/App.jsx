@@ -3,10 +3,12 @@ import MapView from './components/Map/MapView'
 import Sidebar from './components/Sidebar/Sidebar'
 import { useUnitSimulation } from './hooks/useUnitSimulation'
 import { useGeolocation } from './hooks/useGeolocation'
+import { useRealtimeTelemetry } from './hooks/useRealtimeTelemetry'
 import { useAppStore } from './store/useAppStore'
 
 function App() {
   useUnitSimulation()
+  useRealtimeTelemetry()
 
   // Fuente única de geolocalización: sincroniza con el store global
   const { position, accuracy } = useGeolocation()
