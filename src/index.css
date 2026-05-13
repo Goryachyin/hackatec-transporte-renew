@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* CSS base de Leaflet - requerido para que el mapa renderice correctamente */
+@import "leaflet/dist/leaflet.css";
+
+/* Fix: iconos por defecto de Leaflet no cargan con bundlers modernos */
+.leaflet-default-icon-path {
+  background-image: url("leaflet/dist/images/marker-icon.png");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
