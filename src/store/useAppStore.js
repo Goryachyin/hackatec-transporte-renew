@@ -110,15 +110,50 @@ export const useAppStore = create((set) => ({
     })),
 
   // Actualiza una unidad con datos reales del backend (Socket.io).
-  // Marca hasRealData=true para que la simulación no sobreescriba su posición.
+  // Lógica:
+  //   1. Si el deviceId ya tiene hasRealData=true → actualizar posición (dispositivo real conocido)
+  //   2. Si el deviceId existe pero es unidad simulada (hasRealData=false) → ignorar, no interferir
+  //   3. Si el deviceId es desconocido → crear nueva unidad dinámica con hasRealData=true
   updateUnitFromTelemetry: (deviceId, position, speed) =>
-    set((state) => ({
-      units: state.units.map((u) =>
-        u.id === deviceId
-          ? { ...u, position, speed, status: 'on-route', hasRealData: true }
-          : u
-      ),
-    })),
+    set((state) => {
+      const existing = state.units.find((u) => u.id === deviceId)
+
+      // Caso 1: dispositivo real ya registrado → solo actualizar posición
+      if (existing?.hasRealData) {
+        return {
+          units: state.units.map((u) =>
+            u.id === deviceId
+              ? { ...u, position, speed, status: 'on-route' }
+              : u
+          ),
+        }
+      }
+
+      // Caso 2: coincide con unidad simulada → no interferir con la simulación
+      if (existing && !existing.hasRealData) return state
+
+      // Caso 3: deviceId desconocido → crear nueva unidad dinámica
+      const realCount = state.units.filter((u) => u.hasRealData).length + 1
+      return {
+        units: [
+          ...state.units,
+          {
+            id: deviceId,
+            name: `Dispositivo ${String(realCount).padStart(2, '0')}`,
+            routeId: null,   // sin ruta asignada — posición libre en el mapa
+            progress: 0,
+            position,
+            speed,
+            status: 'on-route',
+            passengers: 0,
+            stepsUntilNextStop: 0,
+            isAtStop: false,
+            stopDelta: null,
+            hasRealData: true,
+          },
+        ],
+      }
+    }),
 
   // --- Planificador de viaje ---
   selectionMode: null,      // 'departure' | 'destination' | null
