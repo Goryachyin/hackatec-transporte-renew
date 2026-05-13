@@ -1,3 +1,5 @@
+import { useAppStore } from '../../store/useAppStore'
+
 const MAX_SEATS = 20
 
 function getOccupancyLabel(p) {
@@ -7,6 +9,7 @@ function getOccupancyLabel(p) {
 }
 
 function InfoPanel({ unit }) {
+  const simSpeed = useAppStore((state) => state.simSpeed)
   const lat = unit.position?.[0]?.toFixed(5) ?? '—'
   const lng = unit.position?.[1]?.toFixed(5) ?? '—'
   const passengers = unit.passengers ?? 0
@@ -53,7 +56,7 @@ function InfoPanel({ unit }) {
         </div>
         <div>
           <span className="block text-slate-400 mb-0.5">Velocidad</span>
-          <span className="text-slate-700">{unit.speed}x</span>
+          <span className="text-slate-700">{simSpeed}x</span>
         </div>
         <div>
           <span className="block text-slate-400 mb-0.5">Ruta</span>
